@@ -1,0 +1,30 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DenyNotWhitelist",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${TARGET_BUCKET}",
+                "arn:aws:s3:::${TARGET_BUCKET}/*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:principaltype": [
+                        "User"
+                    ]
+                },
+                "StringNotLike": {
+                    "aws:username": [
+                        "Administrator",
+                        "infra-aws-backup"
+                    ]
+                }
+            }
+        }
+    ]
+}
