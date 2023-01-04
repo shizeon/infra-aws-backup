@@ -1,2 +1,9 @@
 # infra-aws-backup
-S3 Backup target for internal archiving
+
+Create an S3 bucket to be used for glacier backups.
+
+## Usage
+
+```shell
+python3 deploy.py
+```
