@@ -1,0 +1,28 @@
+name: Plan Infrastructure Changes
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  plan:
+    name: Terraform Planning
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout Repo
+        uses: actions/checkout@v1
+
+      - name: Install Python requirements.txt
+        run: pip3 install -r requirements.txt
+
+      - name: Install tfenv
+        uses: rhythmictech/actions-setup-tfenv@v0.0.2
+
+      - name: Run deployment in plan mode
+        run: python3 -u deploy.py --plan-only
+        env:
+          AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-west-2
