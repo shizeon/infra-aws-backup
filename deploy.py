@@ -17,7 +17,7 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 
-__version__ = '10.3.1'
+__version__ = '1.0.0'
 
 # Setup Constants from environment
 LOGLEVEL = os.environ.get('LOGLEVEL', 'ERROR').upper()
@@ -133,8 +133,7 @@ def deploy() -> None:
             )
         else:
             # Unknown exit code, bail
-            print("Exit code from terraform plan was an unknown %d" %
-                  plan_result.returncode)
+            print("Exit code from terraform plan was an unknown %d" % plan_result.returncode)
             raise RuntimeError(plan_result.stderr)
     except subprocess.CalledProcessError as e:
         raise SystemExit("Error: Unable to run '{:s}'. Exit: {:d}. See log for error".format(
@@ -182,8 +181,7 @@ def _init_terraform():
             os.remove(local_state_file)
 
         # Terraform init
-        subprocess.run(["terraform", "-version"],
-                       check=True, cwd=terraform_work_dir)
+        subprocess.run(["terraform", "-version"], check=True, cwd=terraform_work_dir)
         subprocess.run(
             # Need to construct this
             ["terraform", "init", "-backend-config=config.s3.tfbackend"],
