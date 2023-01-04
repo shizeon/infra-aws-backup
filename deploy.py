@@ -274,6 +274,11 @@ def check_environment():
     except Exception as error:
         raise error
 
+    # Friendly print errors
+    if error:
+        print("")
+        raise SystemExit(error_str)
+
     # Setup expected TF_VARS
     os.environ['TF_VAR_aws_region'] = os.getenv('AWS_DEFAULT_REGION')
 
@@ -285,11 +290,6 @@ def check_environment():
     print("")
     print("  Identity")
     print("    AWS User={}".format(user_arn))
-
-    # Friendly print errors
-    if error:
-        print("")
-        raise SystemExit(error_str)
 
 
 def _print_header(text: str) -> None:
@@ -330,3 +330,4 @@ if __name__ == '__main__':
             pass
         except Exception as e:
             _print_header(f"ERROR: Completed Unsuccessfully: {e}")
+            raise e
