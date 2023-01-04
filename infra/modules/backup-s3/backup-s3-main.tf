@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "backup" {
   bucket = var.bucket
 }
 
-resource "aws_s3_bucket_policy" "state_bucket" {
+resource "aws_s3_bucket_policy" "backup" {
   bucket = aws_s3_bucket.backup.id
   policy = templatefile(
     "${path.module}/policies/bucket_policy.tmpl.json",
@@ -14,19 +14,19 @@ resource "aws_s3_bucket_policy" "state_bucket" {
   )
 }
 
-resource "aws_s3_bucket_acl" "state_bucket" {
+resource "aws_s3_bucket_acl" "backup" {
   bucket = aws_s3_bucket.backup.id
   acl    = "private"
 }
 
-resource "aws_s3_bucket_versioning" "state_bucket" {
+resource "aws_s3_bucket_versioning" "backup" {
   bucket = aws_s3_bucket.backup.id
   versioning_configuration {
     status = "Enabled"
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "state_bucket" {
+resource "aws_s3_bucket_public_access_block" "backup" {
   bucket = aws_s3_bucket.backup.id
 
   block_public_acls       = true
@@ -35,7 +35,7 @@ resource "aws_s3_bucket_public_access_block" "state_bucket" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "state_bucket" {
+resource "aws_s3_bucket_lifecycle_configuration" "backup" {
   bucket = aws_s3_bucket.backup.id
 
   rule {
@@ -57,11 +57,42 @@ resource "aws_s3_bucket_lifecycle_configuration" "state_bucket" {
     abort_incomplete_multipart_upload {
       days_after_initiation = 7
     }
+  }
 
+  rule {
+    id     = "TransitionToGlacier"
+    status = "Enabled"
+
+    filter {
+      prefix = "glacier/"
+    }
+
+    transition {
+        days = 30
+        storage_class = "GLACIER"
+    }
   }
 
   depends_on = [
     # versioning must be set before lifecycle configuration
-    aws_s3_bucket_versioning.state_bucket
+    aws_s3_bucket_versioning.backup
   ]
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "backup" {
+  bucket = aws_s3_bucket.backup.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "AES256"
+    }
+  }
+}
+
+# Create glacier base folder
+resource "aws_s3_object" "glacier_folder" {
+    bucket = aws_s3_bucket.backup.id
+    acl     = "private"
+    key     =  "glacier/"
+    content_type = "application/x-directory"
 }
