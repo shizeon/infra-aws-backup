@@ -73,9 +73,11 @@ def parse_cli() -> argparse.Namespace:
     )
     return parser.parse_args()
 
+
 def main() -> None:
     """Execute Primary Deploy"""
     pass
+
 
 def check_installed_dependencies():
     pass
@@ -97,6 +99,7 @@ def plan_only():
     except Exception as e:
         raise SystemExit(f"Error: Unable to run terraform with message: {e}")
 
+
 def deploy() -> None:
     """Do a full terraform plan then apply
 
@@ -105,14 +108,15 @@ def deploy() -> None:
     """
     _init_terraform()
     _print_header("Deploying Terraform")
-    #terraform plan -lock=false -var aws_region=$AWS_DEFAULT_REGION
+    # terraform plan -lock=false -var aws_region=$AWS_DEFAULT_REGION
     terraform_work_dir = _get_config()['terraform'].get('root_module')
 
     try:
         print("Building Terraform plan.")
-        plan_result=subprocess.run(
-            ["terraform", "plan", "-detailed-exitcode","-out=tfplan", "-input=false", "-lock=false"],
-            check=False, # Handle detailed-exitcode
+        plan_result = subprocess.run(
+            ["terraform", "plan", "-detailed-exitcode",
+                "-out=tfplan", "-input=false", "-lock=false"],
+            check=False,  # Handle detailed-exitcode
             cwd=terraform_work_dir,
         )
 
@@ -123,13 +127,14 @@ def deploy() -> None:
         elif plan_result.returncode == 2:
             _print_header("Changes in plan detected, applying plan.")
             subprocess.run(
-                ["terraform", "apply","-input=false", "-lock=true", "tfplan"],
+                ["terraform", "apply", "-input=false", "-lock=true", "tfplan"],
                 check=True,
                 cwd=terraform_work_dir,
             )
         else:
             # Unknown exit code, bail
-            print("Exit code from terraform plan was an unknown %d" % plan_result.returncode)
+            print("Exit code from terraform plan was an unknown %d" %
+                  plan_result.returncode)
             raise RuntimeError(plan_result.stderr)
     except subprocess.CalledProcessError as e:
         raise SystemExit("Error: Unable to run '{:s}'. Exit: {:d}. See log for error".format(
@@ -137,16 +142,18 @@ def deploy() -> None:
             e.returncode,
         ))
     except Exception as e:
-        raise SystemExit(f"Uncaught Error: Unable to run terraform with message: {e}")
+        raise SystemExit(
+            f"Uncaught Error: Unable to run terraform with message: {e}")
     finally:
         # Cleanup tfplan file
-        local_plan_file = os.path.join(terraform_work_dir,'tfplan')
+        local_plan_file = os.path.join(terraform_work_dir, 'tfplan')
         if os.path.exists(local_plan_file):
             os.remove(local_plan_file)
 
 #
 # Private functions
 #
+
 
 def _init_terraform():
     create_backend_file()
@@ -156,8 +163,8 @@ def _init_terraform():
     # Runs from project root
     try:
         _setup_environment_variables()
-        subprocess.run(["tfenv", "install"],check=True)
-        subprocess.run(["tfenv", "use"],check=True)
+        subprocess.run(["tfenv", "install"], check=True)
+        subprocess.run(["tfenv", "use"], check=True)
     except subprocess.CalledProcessError as e:
         raise SystemExit("Error: Unable to run '{:s}'. Exit: {:d}. See log for error".format(
             " ".join(e.cmd),
@@ -169,14 +176,17 @@ def _init_terraform():
 
     try:
         # Cleanup local state
-        local_state_file = os.path.join(terraform_work_dir,'.terraform','terraform.tfstate')
+        local_state_file = os.path.join(
+            terraform_work_dir, '.terraform', 'terraform.tfstate')
         if os.path.exists(local_state_file):
             os.remove(local_state_file)
 
         # Terraform init
-        subprocess.run(["terraform", "-version"],check=True, cwd=terraform_work_dir)
+        subprocess.run(["terraform", "-version"],
+                       check=True, cwd=terraform_work_dir)
         subprocess.run(
-            ["terraform", "init", "-backend-config=config.s3.tfbackend"], # Need to construct this
+            # Need to construct this
+            ["terraform", "init", "-backend-config=config.s3.tfbackend"],
             check=True,
             cwd=terraform_work_dir
         )
@@ -186,7 +196,9 @@ def _init_terraform():
             e.returncode,
         ))
     except Exception as e:
-        raise SystemExit(f"Uncaught Error: Unable to run terraform init with message: {e}")
+        raise SystemExit(
+            f"Uncaught Error: Unable to run terraform init with message: {e}")
+
 
 def create_backend_file(force: bool = False) -> None:
     _print_header("Remote State backend configuration")
@@ -196,39 +208,43 @@ def create_backend_file(force: bool = False) -> None:
     # Read in configuration
     config = _get_config()
 
-    backend_file=os.path.join(config["terraform"]['root_module'],config['terraform']['backend']['file'] )
-    if  os.path.exists(backend_file) and force is False:
+    backend_file = os.path.join(
+        config["terraform"]['root_module'], config['terraform']['backend']['file'])
+    if os.path.exists(backend_file) and force is False:
         print(f"Using existing backend path at {backend_file}. Contents: \n")
     else:
         print(f"Generating a new {backend_file} file. Contents: \n")
-        with open(backend_file,'w') as file:
-            backend_config=config['terraform']['backend']
+        with open(backend_file, 'w') as file:
+            backend_config = config['terraform']['backend']
 
             # TODO: Do some error checking here
             try:
-                bucket = ssm_client.get_parameter(Name=backend_config['state_bucket_key'])['Parameter']['Value']
-                dynamodb_table = ssm_client.get_parameter(Name=backend_config['state_lock_table'])['Parameter']['Value']
-            except Exception as e: # TODO Do better here
+                bucket = ssm_client.get_parameter(Name=backend_config['state_bucket_key'])[
+                    'Parameter']['Value']
+                dynamodb_table = ssm_client.get_parameter(
+                    Name=backend_config['state_lock_table'])['Parameter']['Value']
+            except Exception as e:  # TODO Do better here
                 raise e
 
             # Write out file
             file.write('bucket = "{}"\n'.format(bucket))
             file.write('key = "{}"\n'.format(backend_config.get('key')))
-            file.write('region = "{}"\n'.format(os.getenv('AWS_DEFAULT_REGION')))
+            file.write('region = "{}"\n'.format(
+                os.getenv('AWS_DEFAULT_REGION')))
             file.write('dynamodb_table = "{}"\n'.format(dynamodb_table))
             file.write('encrypt = {}\n'.format(backend_config.get('encrypt')))
 
-    with open(backend_file,'r') as file:
+    with open(backend_file, 'r') as file:
         for line in file.readlines():
-            print(f"  {line}", end ="")
-
+            print(f"  {line}", end="")
 
 
 def _get_config() -> dict:
     # Read in configuration
-    with open('deploy.py.yaml','r') as file:
+    with open('deploy.py.yaml', 'r') as file:
         config = yaml.safe_load(file)
     return config
+
 
 def _setup_environment_variables() -> None:
 
@@ -240,13 +256,14 @@ def _setup_environment_variables() -> None:
 
     os.environ['TF_IN_AUTOMATION'] = "1"
 
+
 def check_environment():
 
-    error=False
-    error_str="Missing Environment Variables. Please set: \n"
+    error = False
+    error_str = "Missing Environment Variables. Please set: \n"
     if os.getenv('AWS_DEFAULT_REGION') is None:
-        error=True
-        error_str+="  - AWS_DEFAULT_REGION\n"
+        error = True
+        error_str += "  - AWS_DEFAULT_REGION\n"
 
     # See if we can login go AWS
     try:
@@ -259,14 +276,14 @@ def check_environment():
     except Exception as error:
         raise error
 
-    # Setup expected TFVARS
-    os.environ['TF_VAR_aws_region']=os.getenv('AWS_DEFAULT_REGION')
+    # Setup expected TF_VARS
+    os.environ['TF_VAR_aws_region'] = os.getenv('AWS_DEFAULT_REGION')
 
     # Print out current configuration for logs
     _print_header("Configuration")
     print("  Environment")
-    print("    AWS_DEFAULT_REGION={}".format(os.getenv('AWS_DEFAULT_REGION') ))
-    print("    TF_VAR_aws_region={}".format(os.getenv('TF_VAR_aws_region') ))
+    print("    AWS_DEFAULT_REGION={}".format(os.getenv('AWS_DEFAULT_REGION')))
+    print("    TF_VAR_aws_region={}".format(os.getenv('TF_VAR_aws_region')))
     print("")
     print("  Identity")
     print("    AWS User={}".format(user_arn))
@@ -283,6 +300,7 @@ def _print_header(text: str) -> None:
     print(text)
     print("*" * 80)
     print("")
+
 
 if __name__ == '__main__':
 

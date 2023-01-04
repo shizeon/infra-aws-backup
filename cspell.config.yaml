@@ -8,6 +8,7 @@ words:
   - tfstate
 ignoreWords:
   - btek
+  - levelname
   - principaltype
   - tfbackend
 import: []
