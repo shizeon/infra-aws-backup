@@ -4,6 +4,8 @@ dictionaryDefinitions: []
 dictionaries: []
 words:
   - bridgetek
+  - tfenv
+  - tfstate
 ignoreWords:
   - btek
   - principaltype
