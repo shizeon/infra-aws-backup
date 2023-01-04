@@ -51,11 +51,25 @@ resource "aws_s3_bucket_lifecycle_configuration" "backup" {
     }
 
     noncurrent_version_expiration {
-      noncurrent_days = 90
+      noncurrent_days = 2
     }
 
     abort_incomplete_multipart_upload {
-      days_after_initiation = 7
+      days_after_initiation = 2
+    }
+  }
+
+  rule {
+    id     = "TransitionToGlacierDeepArchive"
+    status = "Enabled"
+
+    filter {
+      prefix = "deep_archive/"
+    }
+
+    transition {
+      days          = 0
+      storage_class = "DEEP_ARCHIVE"
     }
   }
 
@@ -68,15 +82,26 @@ resource "aws_s3_bucket_lifecycle_configuration" "backup" {
     }
 
     transition {
-        days = 30
-        storage_class = "GLACIER"
+      days          = 0
+      storage_class = "GLACIER"
     }
   }
 
-  depends_on = [
-    # versioning must be set before lifecycle configuration
-    aws_s3_bucket_versioning.backup
-  ]
+  rule {
+    id     = "TransitionToStandardIA"
+    status = "Enabled"
+
+    filter {
+      prefix = "standard_ia/"
+    }
+
+    transition {
+      days          = 30 # 30 Day min
+      storage_class = "STANDARD_IA"
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.backup]
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "backup" {
@@ -84,15 +109,68 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "backup" {
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "AES256"
+      sse_algorithm = "AES256"
     }
   }
 }
 
+# Create deep archive base folder
+resource "aws_s3_object" "deep_dir" {
+  bucket                 = aws_s3_bucket.backup.id
+  acl                    = "private"
+  key                    = "deep_archive/"
+  content_type           = "application/x-directory"
+  server_side_encryption = "AES256"
+  storage_class          = "DEEP_ARCHIVE"
+}
+
+resource "aws_s3_object" "deep_dir_user" {
+  for_each               = toset(var.dir_deep_archive)
+  bucket                 = aws_s3_bucket.backup.id
+  acl                    = "private"
+  key                    = "deep_archive/${each.key}/"
+  content_type           = "application/x-directory"
+  server_side_encryption = "AES256"
+  storage_class          = "DEEP_ARCHIVE"
+}
+
 # Create glacier base folder
-resource "aws_s3_object" "glacier_folder" {
-    bucket = aws_s3_bucket.backup.id
-    acl     = "private"
-    key     =  "glacier/"
-    content_type = "application/x-directory"
+resource "aws_s3_object" "glacier_dir" {
+  bucket                 = aws_s3_bucket.backup.id
+  acl                    = "private"
+  key                    = "glacier/"
+  content_type           = "application/x-directory"
+  server_side_encryption = "AES256"
+  storage_class          = "GLACIER"
+}
+
+resource "aws_s3_object" "glacier_dir_user" {
+  for_each               = toset(var.dir_glacier)
+  bucket                 = aws_s3_bucket.backup.id
+  acl                    = "private"
+  key                    = "glacier/${each.key}/"
+  content_type           = "application/x-directory"
+  server_side_encryption = "AES256"
+  storage_class          = "GLACIER"
+}
+
+
+# Create standard_ia base folder
+resource "aws_s3_object" "standardia_dir" {
+  bucket                 = aws_s3_bucket.backup.id
+  acl                    = "private"
+  key                    = "standard_ia/"
+  content_type           = "application/x-directory"
+  server_side_encryption = "AES256"
+  storage_class          = "STANDARD_IA"
+}
+
+resource "aws_s3_object" "standard_ia_dir_user" {
+  for_each               = toset(var.dir_standard_ia)
+  bucket                 = aws_s3_bucket.backup.id
+  acl                    = "private"
+  key                    = "standard_ia/${each.key}/"
+  content_type           = "application/x-directory"
+  server_side_encryption = "AES256"
+  storage_class          = "STANDARD_IA"
 }
