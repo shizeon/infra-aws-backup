@@ -5,6 +5,7 @@ dictionaries: []
 words:
   - bridgetek
 ignoreWords:
+  - btek
   - principaltype
   - tfbackend
 import: []

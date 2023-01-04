@@ -21,7 +21,8 @@
                 "StringNotLike": {
                     "aws:username": [
                         "Administrator",
-                        "infra-aws-backup"
+                        "infra-aws-backup",
+                        "btek-backup"
                     ]
                 }
             }
