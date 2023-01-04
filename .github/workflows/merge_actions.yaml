@@ -7,7 +7,7 @@ on:
 
 jobs:
   plan:
-    name: Terraform Planning
+    name: Terraform Deploy
     runs-on: ubuntu-latest
     steps:
 
