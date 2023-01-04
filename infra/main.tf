@@ -35,6 +35,6 @@ module "archive_bucket" {
   source           = "./modules/backup-s3"
   bucket           = "bridgetek-family-backup"
   dir_deep_archive = ["photos", "video"]
-  dir_standard_ia  = []
+  dir_standard_ia  = ["fast"]
   dir_glacier      = []
 }
