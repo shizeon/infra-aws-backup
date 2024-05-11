@@ -34,7 +34,7 @@ locals {
 module "archive_bucket" {
   source           = "./modules/backup-s3"
   bucket           = "bridgetek-family-backup"
-  dir_deep_archive = ["photos", "video", "home"]
+  dir_deep_archive = ["photos", "video", "home", "dxc"]
   dir_standard_ia  = []
   dir_glacier      = []
 }
