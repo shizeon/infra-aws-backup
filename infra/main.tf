@@ -3,7 +3,7 @@ terraform {
   required_version = ">= 1.3.0, < 1.4.0"
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "~> 4.48"
     }
     template = {
@@ -34,7 +34,7 @@ locals {
 module "archive_bucket" {
   source           = "./modules/backup-s3"
   bucket           = "bridgetek-family-backup"
-  dir_deep_archive = ["photos", "video", "home", "dxc"]
-  dir_standard_ia  = []
-  dir_glacier      = []
+  dir_deep_archive = var.dir_deep_archive
+  dir_standard_ia  = var.dir_standard_ia
+  dir_glacier      = var.dir_glacier
 }
