@@ -4,7 +4,7 @@ variable "aws_region" {
 
 variable "dir_deep_archive" {
   description = "Map of prexies in the S3 bucket that will have deep archive applied"
-  default     = ["photos", "video", "home", "dxc"]
+  default     = ["photos", "video", "home", "dxc", "drive", "email"]
   type        = list(string)
 }
 
