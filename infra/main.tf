@@ -1,6 +1,6 @@
 
 terraform {
-  required_version = ">= 1.3.0, < 1.4.0"
+  required_version = "~> 1.8.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -24,10 +24,9 @@ provider "aws" {
 # Locals
 locals {
   default_tags = {
-    "Environment" = "tbd",
-    "Name"        = "tbd",
-    "Owner"       = "tbd",
-    "Application" = "infra-aws-backup"
+    "Environment" = "Production",
+    "Owner"       = "sean@bridgetek.com",
+    "Application" = "bridgetek-family-backup-storage"
   }
 }
 
