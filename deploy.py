@@ -162,8 +162,8 @@ def _init_terraform():
     # Runs from project root
     try:
         _setup_environment_variables()
-        subprocess.run(["tfenv", "install"], check=True)
-        subprocess.run(["tfenv", "use"], check=True)
+        subprocess.run(["tenv", "terraform", "install"], check=True)
+        #subprocess.run(["tenv", "terraform", "use"], check=True)
     except subprocess.CalledProcessError as e:
         raise SystemExit("Error: Unable to run '{:s}'. Exit: {:d}. See log for error".format(
             " ".join(e.cmd),
