@@ -219,8 +219,8 @@ def create_backend_file(force: bool = False) -> None:
             try:
                 bucket = ssm_client.get_parameter(Name=backend_config['state_bucket_key'])[
                     'Parameter']['Value']
-                dynamodb_table = ssm_client.get_parameter(
-                    Name=backend_config['state_lock_table'])['Parameter']['Value']
+                # dynamodb_table = ssm_client.get_parameter(
+                #     Name=backend_config['state_lock_table'])['Parameter']['Value']
             except Exception as e:  # TODO Do better here
                 raise e
 
@@ -229,7 +229,8 @@ def create_backend_file(force: bool = False) -> None:
             file.write('key = "{}"\n'.format(backend_config.get('key')))
             file.write('region = "{}"\n'.format(
                 os.getenv('AWS_DEFAULT_REGION')))
-            file.write('dynamodb_table = "{}"\n'.format(dynamodb_table))
+            #file.write('dynamodb_table = "{}"\n'.format(dynamodb_table))
+            file.write('use_lockfile = {}\n'.format(backend_config.get('use_lockfile')))
             file.write('encrypt = {}\n'.format(backend_config.get('encrypt')))
 
     with open(backend_file, 'r') as file:
