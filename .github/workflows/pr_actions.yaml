@@ -17,8 +17,18 @@ jobs:
       - name: Install Python requirements.txt
         run: pip3 install -r requirements.txt
 
-      - name: Install tfenv
-        uses: rhythmictech/actions-setup-tfenv@v0.0.2
+      # - name: Install tfenv
+      #   uses: tofuutils/tenv-github-action@main
+      #   with:
+      #     tool_name: terraform
+
+      - name: Manual Tenv Installation
+        run: |
+          LATEST_VERSION=$(curl --silent https://api.github.com/repos/tofuutils/tenv/releases/latest | jq -r .tag_name)
+          curl -O -L "https://github.com/tofuutils/tenv/releases/latest/download/tenv_${LATEST_VERSION}_amd64.deb"
+          sudo dpkg -i "tenv_${LATEST_VERSION}_amd64.deb"
+          tenv --version
+
 
       - name: Run deployment in plan mode
         run: python3 -u deploy.py --plan-only
