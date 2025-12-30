@@ -6,4 +6,5 @@ terraform:
     key: "state/infra-aws-backup"
     encrypt: "true"
     state_bucket_key: "/infra/state/bucket"
-    state_lock_table: "/infra/state/lock"
+    # state_lock_table: "/infra/state/lock"
+    use_lockfile: "true"
